@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>My Gold</title>
+<style>
+  :root {
+    --gold: #b8860b;
+    --gold-dark: #8a6508;
+    --bg: #f4f2ec;
+    --card: #ffffff;
+    --border: #e4dcc8;
+    --text: #1f1f1f;
+    --muted: #7a7267;
+    --issue: #c0392b;
+    --receipt: #1e7e34;
+    --prime: #1e7e34;
+    --yellow: #b8860b;
+    --red: #c0392b;
+    --black: #2b2b2b;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: white;
+    padding: 18px 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 24px; margin: 0; font-weight: 700; }
+  header .sub { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+  #changeDeptBtn {
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    padding: 6px 10px; border-radius: 8px; font-size: 12px; margin-top: 2px;
+  }
+
+  .container { padding: 14px; max-width: 640px; margin: 0 auto; padding-bottom: 90px; }
+  .view.hidden, .hidden { display: none !important; }
+
+  .row-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .row-title h2 { font-size: 22px; margin: 0; }
+  .btn {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px;
+  }
+  .btn.primary { background: var(--gold); color: white; border: none; }
+  .btn.danger { color: var(--issue); border-color: var(--issue); }
+  .btn-row { display: flex; gap: 8px; }
+
+  /* Setup screen */
+  #setupScreen, #gateScreen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 90vh; padding: 20px; text-align: center;
+  }
+  #setupScreen h1, #gateScreen h1 { color: var(--gold-dark); font-size: 30px; margin-bottom: 4px; }
+  #setupScreen p, #gateScreen p { color: var(--muted); margin-top: 0; margin-bottom: 24px; }
+  .dept-choice {
+    width: 100%; max-width: 320px; padding: 16px; font-size: 17px; font-weight: 600;
+    border: 2px solid var(--border); border-radius: 10px; background: white; margin-bottom: 10px; color: var(--text);
+  }
+
+  /* Dashboard cards */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+  }
+  .stat-icon {
+    width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; margin-bottom: 10px;
+  }
+  .stat-icon.blue { background: #e7f0fd; }
+  .stat-icon.green { background: #e6f7ea; }
+  .stat-icon.purple { background: #f2e9fb; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .stat-value { font-size: 26px; font-weight: 700; }
+
+  .followup-card {
+    background: var(--card); border: 1px solid #f3d9d4; border-radius: 14px; padding: 16px; margin-bottom: 14px;
+  }
+  .followup-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .followup-head .title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: var(--issue); }
+  .chip { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .chip.red { background: #fdeceb; color: var(--red); }
+  .chip.black { background: #2b2b2b; color: white; }
+  .chip.yellow { background: #fdf3e0; color: var(--yellow); }
+  .chip.prime { background: #e6f7ea; color: var(--prime); }
+  .followup-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .followup-row:last-child { border-bottom: none; }
+  .followup-row .name { font-weight: 600; font-size: 14px; }
+  .followup-row .meta { font-size: 12px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 8px; flex-shrink: 0; }
+  .dot.prime { background: var(--prime); }
+  .dot.yellow { background: var(--yellow); }
+  .dot.red { background: var(--red); }
+  .dot.black { background: var(--black); }
+
+  /* Inventory view */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 8px; }
+  input[type=text], input[type=number] {
+    width: 100%; padding: 12px; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text);
+  }
+  .toggle-group { display: flex; gap: 8px; margin-top: 8px; }
+  .toggle-btn {
+    flex: 1; padding: 12px; border-radius: 8px; border: 2px solid var(--border); background: white;
+    font-weight: 600; font-size: 15px; color: var(--muted);
+  }
+  .toggle-btn.active-issue { border-color: var(--issue); background: #fdeceb; color: var(--issue); }
+  .toggle-btn.active-receipt { border-color: var(--receipt); background: #eaf6ec; color: var(--receipt); }
+  #addBtn { width: 100%; margin-top: 12px; padding: 14px; background: var(--gold); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; }
+
+  .ledger-cols { display: flex; gap: 8px; }
+  .ledger-col { flex: 1; min-width: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .ledger-col-head { padding: 10px 10px; font-weight: 700; font-size: 14px; }
+  .ledger-col-head.issue { background: #fdeceb; color: var(--issue); }
+  .ledger-col-head.receipt { background: #eaf6ec; color: var(--receipt); }
+  .ledger-col-body { background: white; }
+  .ledger-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 12px; gap: 4px; }
+  .ledger-item .lname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px; }
+  .ledger-item .lwt { font-weight: 700; white-space: nowrap; }
+  .ledger-item .ldel { background: none; border: none; color: var(--muted); font-size: 14px; padding: 2px 4px; }
+  .ledger-empty { padding: 16px 8px; text-align: center; color: var(--muted); font-size: 12px; }
+  .ledger-total { display: flex; justify-content: space-between; padding: 10px 10px; font-weight: 700; font-size: 13px; background: #faf9f6; }
+
+  /* Customers view */
+  .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filter-chip { padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); background: white; color: var(--muted); }
+  .filter-chip.selected.all { background: var(--black); color: white; border-color: var(--black); }
+  .filter-chip.selected.prime { background: #e6f7ea; color: var(--prime); border-color: var(--prime); }
+  .filter-chip.selected.yellow { background: #fdf3e0; color: var(--yellow); border-color: var(--yellow); }
+  .filter-chip.selected.red { background: #fdeceb; color: var(--red); border-color: var(--red); }
+  .filter-chip.selected.black { background: var(--black); color: white; border-color: var(--black); }
+  .cust-row { display: flex; align-items: center; justify-content: space-between; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 8px; }
+  .cust-row .left { display: flex; align-items: center; }
+  .cust-row .name { font-weight: 700; font-size: 15px; }
+  .cust-row .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .cust-badge { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #eee; color: var(--muted); white-space: nowrap; }
+  .cust-row.selected { outline: 2px solid var(--gold); }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border);
+    display: flex; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-btn { flex: 1; border: none; background: none; padding: 10px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--muted); font-size: 11px; }
+  .nav-btn .icon { font-size: 19px; }
+  .nav-btn.active { color: var(--gold-dark); font-weight: 700; }
+
+  #empty-search { text-align: center; color: var(--muted); padding: 20px 0; font-size: 13px; }
+  .search-input { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div id="gateScreen">
+  <h1>My Gold</h1>
+  <div id="deptPickStep">
+    <p>Which department is this phone for?</p>
+    <button class="dept-choice" data-dept="rose gold">Rose Gold</button>
+    <button class="dept-choice" data-dept="yellow">Yellow</button>
+    <button class="dept-choice" data-dept="cz">CZ</button>
+    <button class="dept-choice" data-dept="imported">Imported</button>
+  </div>
+  <div id="passStep" class="hidden">
+    <p id="passStepLabel">Enter passcode</p>
+    <input type="password" id="gateInput" inputmode="text" placeholder="Passcode" autocomplete="off" style="width:100%; max-width:280px; padding:14px; font-size:18px; border:2px solid var(--border); border-radius:10px; text-align:center; margin-bottom:12px;">
+    <button id="gateBtn" style="width:100%; max-width:280px; padding:14px; font-size:16px; background:var(--gold); color:white; border:none; border-radius:10px; font-weight:600;">Enter</button>
+    <div id="gateError" style="color:var(--issue); font-size:14px; margin-top:8px; min-height:18px;"></div>
+    <button id="backToDeptBtn" style="margin-top:10px; background:none; border:none; color:var(--muted); font-size:13px;">‹ Choose a different department</button>
+  </div>
+</div>
+
+<div id="appShell" class="hidden">
+  <header>
+    <div>
+      <h1 id="deptHeading">My Gold</h1>
+      <div class="sub" id="dateLabel"></div>
+    </div>
+    <button id="changeDeptBtn">Change</button>
+  </header>
+
+  <div class="container">
+
+    <!-- HOME -->
+    <div id="homeView" class="view">
+      <div class="row-title"><h2>Dashboard</h2></div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📄</div>
+          <div class="stat-label">Today's Issue</div>
+          <div class="stat-value" id="statIssue">0.0g</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📈</div>
+          <div class="stat-label">Today's Receipt</div>
+          <div class="stat-value" id="statReceipt">0.0g</div>
+        </div>
+        <div class="stat-card" style="grid-column: 1 / -1;">
+          <div class="stat-icon purple">👥</div>
+          <div class="stat-label">Total Customers</div>
+          <div class="stat-value" id="statCustomers">0</div>
+        </div>
+      </div>
+
+      <div class="followup-card">
+        <div class="followup-head">
+          <div class="title">⚠️ Customers Needing Follow-Up</div>
+        </div>
+        <div id="followupList"></div>
+        <div id="followupEmpty" class="hidden" style="text-align:center;color:var(--muted);font-size:13px;padding:10px 0;">Nobody's overdue right now.</div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="inventoryView" class="view hidden">
+      <div class="row-title">
+        <h2>Inventory</h2>
+        <button class="btn" id="exportLedgerBtn">⬇ Export</button>
+      </div>
+
+      <div class="card">
+        <div class="toggle-group">
+          <button class="toggle-btn" id="issueToggle">Issue</button>
+          <button class="toggle-btn" id="receiptToggle">Receipt</button>
+        </div>
+        <label>Party name</label>
+        <input type="text" id="partyName" placeholder="Name" list="partyList" autocomplete="off">
+        <datalist id="partyList"></datalist>
+        <label>Weight (g)</label>
+        <input type="number" id="weightInput" placeholder="0.00" step="0.01" inputmode="decimal">
+        <button id="addBtn">Add Entry</button>
+      </div>
+
+      <div class="ledger-cols">
+        <div class="ledger-col">
+          <div class="ledger-col-head issue">ISSUE</div>
+          <div class="ledger-col-body" id="issueCol"></div>
+          <div class="ledger-total"><span>Total</span><span id="issueColTotal">0.00g</span></div>
+        </div>
+        <div class="ledger-col">
+          <div class="ledger-col-head receipt">RECEIPT</div>
+          <div class="ledger-col-body" id="receiptCol"></div>
+          <div class="ledger-total"><span>Total</span><span id="receiptColTotal">0.00g</span></div>
+        </div>
+      </div>
+
+      <button class="btn danger" id="clearBtn" style="width:100%; margin-top:12px; justify-content:center;">⚠ Clear All Today's Entries</button>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div id="customersView" class="view hidden">
+      <div class="row-title">
+        <h2>Customers</h2>
+        <div class="btn-row">
+          <button class="btn" id="exportCustBtn">⬇ Export</button>
+          <button class="btn" id="addCustBtn">+ Add</button>
+        </div>
+      </div>
+
+      <div class="filter-chips" id="filterChips"></div>
+
+      <input type="text" id="historySearch" class="search-input" placeholder="Search customers...">
+      <div id="historyList"></div>
+      <div id="empty-search" class="hidden"></div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="home"><span class="icon">🏠</span>Home</button>
+    <button class="nav-btn" data-view="inventory"><span class="icon">📄</span>Inventory</button>
+    <button class="nav-btn" data-view="customers"><span class="icon">👥</span>Customers</button>
+  </nav>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const todayStr = () => new Date().toISOString().split('T')[0];
+
+// Change these to whatever passcodes you want for each department.
+const DEPARTMENT_CODES = {
+  "rose gold": "rose",
+  "yellow": "yellow",
+  "cz": "cz",
+  "imported": "imported"
+};
+
+let state = { department: null, currentType: 'issue', entries: [], custFilter: 'all' };
+let pendingDept = null;
+
+// ---------- PASSCODE GATE ----------
+function checkGate() {
+  const dept = localStorage.getItem('mygold_department');
+  const unlocked = localStorage.getItem('mygold_unlocked_dept');
+  if (dept && unlocked === dept) {
+    $('gateScreen').classList.add('hidden');
+    load();
+  }
+}
+
+document.querySelectorAll('#deptPickStep .dept-choice').forEach(btn => {
+  btn.onclick = () => {
+    pendingDept = btn.dataset.dept;
+    $('deptPickStep').classList.add('hidden');
+    $('passStep').classList.remove('hidden');
+    $('passStepLabel').textContent = 'Enter passcode for ' + capitalize(pendingDept);
+    $('gateInput').value = '';
+    $('gateError').textContent = '';
+    $('gateInput').focus();
+  };
+});
+
+$('backToDeptBtn').onclick = () => {
+  pendingDept = null;
+  $('passStep').classList.add('hidden');
+  $('deptPickStep').classList.remove('hidden');
+};
+
+$('gateBtn').onclick = submitGate;
+$('gateInput').addEventListener('keypress', e => { if (e.key === 'Enter') submitGate(); });
+function submitGate() {
+  if (!pendingDept) return;
+  if ($('gateInput').value.trim().toLowerCase() === DEPARTMENT_CODES[pendingDept]) {
+    localStorage.setItem('mygold_department', pendingDept);
+    localStorage.setItem('mygold_unlocked_dept', pendingDept);
+    localStorage.setItem('mygold_date', todayStr());
+    if (!localStorage.getItem('mygold_entries')) localStorage.setItem('mygold_entries', '[]');
+    $('gateScreen').classList.add('hidden');
+    state.department = pendingDept;
+    load();
+  } else {
+    $('gateError').textContent = 'Wrong passcode for ' + capitalize(pendingDept) + '.';
+  }
+}
+
+// ---------- SETUP / LOAD ----------
+function load() {
+  const dept = localStorage.getItem('mygold_department');
+  const storedDate = localStorage.getItem('mygold_date');
+  let entries = JSON.parse(localStorage.getItem('mygold_entries') || '[]');
+
+  if (storedDate !== todayStr()) {
+    entries = [];
+    localStorage.setItem('mygold_date', todayStr());
+    localStorage.setItem('mygold_entries', JSON.stringify(entries));
+  }
+
+  state.department = dept;
+  state.entries = entries;
+
+  if (dept) enterApp();
+}
+
+$('changeDeptBtn').onclick = () => {
+  if (!confirm("Switch this phone to a different department? You'll need that department's passcode, and today's entries will be cleared from this phone.")) return;
+  localStorage.removeItem('mygold_department');
+  localStorage.removeItem('mygold_unlocked_dept');
+  localStorage.removeItem('mygold_entries');
+  localStorage.removeItem('mygold_date');
+  location.reload();
+};
+
+function capitalize(s) { return s.split(' ').map(w => w[0].toUpperCase()+w.slice(1)).join(' '); }
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function enterApp() {
+  $('appShell').classList.remove('hidden');
+  $('deptHeading').textContent = 'My Gold — ' + capitalize(state.department);
+  $('dateLabel').textContent = new Date().toLocaleDateString([], {weekday: 'long', day: 'numeric', month: 'long'});
+  setType('issue');
+  populatePartyList();
+  renderAll();
+}
+
+// ---------- NAV ----------
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.onclick = () => switchView(btn.dataset.view);
+});
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  $(view + 'View').classList.remove('hidden');
+  document.querySelector(`.nav-btn[data-view="${view}"]`).classList.add('active');
+  if (view === 'customers') renderCustomersView();
+  if (view === 'home') renderHome();
+}
+
+// ---------- ENTRIES ----------
+$('issueToggle').onclick = () => setType('issue');
+$('receiptToggle').onclick = () => setType('receipt');
+function setType(t) {
+  state.currentType = t;
+  $('issueToggle').className = 'toggle-btn' + (t === 'issue' ? ' active-issue' : '');
+  $('receiptToggle').className = 'toggle-btn' + (t === 'receipt' ? ' active-receipt' : '');
+}
+
+function saveEntries() { localStorage.setItem('mygold_entries', JSON.stringify(state.entries)); }
+
+$('addBtn').onclick = () => {
+  const party_name = $('partyName').value.trim();
+  const weight = parseFloat($('weightInput').value);
+  if (!party_name) { alert('Enter party name'); return; }
+  if (!weight || isNaN(weight)) { alert('Enter a valid weight'); return; }
+
+  state.entries.push({
+    id: Date.now(),
+    type: state.currentType,
+    party_name,
+    weight,
+    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+  });
+  saveEntries();
+  upsertCustomer(party_name, state.currentType);
+  populatePartyList();
+  $('partyName').value = '';
+  $('weightInput').value = '';
+  renderAll();
+};
+
+function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  state.entries = state.entries.filter(e => e.id !== id);
+  saveEntries();
+  renderAll();
+}
+
+$('clearBtn').onclick = () => {
+  if (!confirm("Clear ALL of today's entries? This cannot be undone.")) return;
+  state.entries = [];
+  saveEntries();
+  renderAll();
+};
+
+function renderLedger() {
+  const issue = state.entries.filter(e => e.type === 'issue');
+  const receipt = state.entries.filter(e => e.type === 'receipt');
+
+  const renderCol = (list) => list.length ? list.map(e => `
+    <div class="ledger-item">
+      <span class="lname">${escapeHtml(e.party_name)}</span>
+      <span class="lwt">${e.weight.toFixed(2)}</span>
+      <button class="ldel" onclick="deleteEntry(${e.id})">✕</button>
+    </div>
+  `).join('') : `<div class="ledger-empty">No entries</div>`;
+
+  $('issueCol').innerHTML = renderCol(issue);
+  $('receiptCol').innerHTML = renderCol(receipt);
+
+  const issueTotal = issue.reduce((s,e) => s + e.weight, 0);
+  const receiptTotal = receipt.reduce((s,e) => s + e.weight, 0);
+  $('issueColTotal').textContent = issueTotal.toFixed(2) + 'g';
+  $('receiptColTotal').textContent = receiptTotal.toFixed(2) + 'g';
+  $('statIssue').textContent = issueTotal.toFixed(1) + 'g';
+  $('statReceipt').textContent = receiptTotal.toFixed(1) + 'g';
+}
+
+$('exportLedgerBtn').onclick = () => {
+  let csv = 'Type,Party,Weight(g),Time\n';
+  state.entries.forEach(e => { csv += `${e.type},"${e.party_name}",${e.weight},${e.time}\n`; });
+  downloadFile(csv, `my-gold-${capitalize(state.department)}-${todayStr()}.csv`);
+};
+
+function downloadFile(content, filename) {
+  const blob = new Blob([content], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ---------- CUSTOMERS ----------
+function loadCustomers() { return JSON.parse(localStorage.getItem('mygold_customers') || '{}'); }
+function saveCustomers(c) { localStorage.setItem('mygold_customers', JSON.stringify(c)); }
+
+function upsertCustomer(displayName, type) {
+  const customers = loadCustomers();
+  const key = displayName.trim().toLowerCase();
+  customers[key] = { displayName: displayName.trim(), lastDate: todayStr(), lastType: type };
+  saveCustomers(customers);
+}
+
+function populatePartyList() {
+  const customers = loadCustomers();
+  $('partyList').innerHTML = Object.values(customers)
+    .sort((a,b) => a.displayName.localeCompare(b.displayName))
+    .map(c => `<option value="${escapeHtml(c.displayName)}">`).join('');
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  const then = new Date(dateStr + 'T00:00:00');
+  const now = new Date(todayStr() + 'T00:00:00');
+  return Math.round((now - then) / 86400000);
+}
+function categoryFor(days) {
+  if (days === null) return 'black';
+  if (days <= 7) return 'prime';
+  if (days <= 14) return 'yellow';
+  if (days <= 21) return 'red';
+  return 'black';
+}
+function formatDateNice(iso) {
+  if (!iso) return 'Never';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString([], {day: 'numeric', month: 'short', year: 'numeric'});
+}
+
+function getCustomerListWithMeta() {
+  return Object.values(loadCustomers()).map(c => {
+    const days = daysSince(c.lastDate);
+    return { ...c, days, category: categoryFor(days) };
+  }).sort((a,b) => (b.days ?? 9999) - (a.days ?? 9999));
+}
+
+$('addCustBtn').onclick = () => {
+  const name = prompt('Customer name:');
+  if (!name || !name.trim()) return;
+  const customers = loadCustomers();
+  const key = name.trim().toLowerCase();
+  if (!customers[key]) {
+    customers[key] = { displayName: name.trim(), lastDate: null, lastType: 'issue' };
+    saveCustomers(customers);
+  }
+  populatePartyList();
+  renderCustomersView();
+};
+
+$('exportCustBtn').onclick = () => {
+  const list = getCustomerListWithMeta();
+  let csv = 'Name,Last Visit,Days Inactive,Category\n';
+  list.forEach(c => { csv += `"${c.displayName}",${c.lastDate || 'Never'},${c.days ?? ''},${c.category}\n`; });
+  downloadFile(csv, `my-gold-customers-${capitalize(state.department)}-${todayStr()}.csv`);
+};
+
+let selectedForMerge = [];
+$('historySearch').addEventListener('input', () => renderCustomersView());
+
+function renderFilterChips() {
+  const list = getCustomerListWithMeta();
+  const counts = { all: list.length, prime: 0, yellow: 0, red: 0, black: 0 };
+  list.forEach(c => counts[c.category]++);
+  const chips = [
+    ['all', 'All'], ['prime', 'Prime'], ['yellow', 'Yellow'], ['red', 'Red'], ['black', 'Black']
+  ];
+  $('filterChips').innerHTML = chips.map(([key, label]) => `
+    <button class="filter-chip ${state.custFilter === key ? 'selected ' + key : ''}" data-filter="${key}">${label} (${counts[key]})</button>
+  `).join('');
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.onclick = () => { state.custFilter = btn.dataset.filter; renderCustomersView(); };
+  });
+}
+
+function renderCustomersView() {
+  renderFilterChips();
+  const search = $('historySearch').value.trim().toLowerCase();
+  let list = getCustomerListWithMeta();
+  if (state.custFilter !== 'all') list = list.filter(c => c.category === state.custFilter);
+  if (search) list = list.filter(c => c.displayName.toLowerCase().includes(search));
+
+  if (!list.length) {
+    $('historyList').innerHTML = '';
+    $('empty-search').classList.remove('hidden');
+    $('empty-search').textContent = getCustomerListWithMeta().length
+      ? 'No customers match that filter/search.'
+      : "No customers yet — they'll appear here after the first entry.";
+  } else {
+    $('empty-search').classList.add('hidden');
+    $('historyList').innerHTML = list.map(c => `
+      <div class="cust-row">
+        <div class="left">
+          <span class="dot ${c.category}"></span>
+          <div>
+            <div class="name">${escapeHtml(c.displayName)}</div>
+            <div class="meta">${c.days === null ? 'No visits logged' : c.days + ' days inactive'} • Last: ${formatDateNice(c.lastDate)}</div>
+          </div>
+        </div>
+        <span class="cust-badge">${c.days === null ? 'New' : c.days + 'd'}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function renderHome() {
+  const list = getCustomerListWithMeta();
+  $('statCustomers').textContent = list.length;
+  const needsFollowUp = list.filter(c => c.category === 'red' || c.category === 'black').slice(0, 5);
+  if (!needsFollowUp.length) {
+    $('followupList').innerHTML = '';
+    $('followupEmpty').classList.remove('hidden');
+  } else {
+    $('followupEmpty').classList.add('hidden');
+    $('followupList').innerHTML = needsFollowUp.map(c => `
+      <div class="followup-row">
+        <div class="left" style="display:flex;align-items:center;">
+          <span class="dot ${c.category}"></span>
+          <div>
+            <div class="name">${escapeHtml(c.displayName)}</div>
+            <div class="meta">${c.days} days inactive • Last: ${formatDateNice(c.lastDate)}</div>
+          </div>
+        </div>
+        <span class="chip ${c.category}">${c.category}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function renderAll() {
+  renderLedger();
+  renderHome();
+}
+
+checkGate();
+</script>
+</body>
+</html>
