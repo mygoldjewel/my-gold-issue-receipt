@@ -92,6 +92,7 @@
   .chip.black { background: #2b2b2b; color: white; }
   .chip.yellow { background: #fdf3e0; color: var(--yellow); }
   .chip.prime { background: #e6f7ea; color: var(--prime); }
+  .chip.new { background: #ececec; color: #888; }
   .followup-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
   .followup-row:last-child { border-bottom: none; }
   .followup-row .name { font-weight: 600; font-size: 14px; }
@@ -101,6 +102,7 @@
   .dot.yellow { background: var(--yellow); }
   .dot.red { background: var(--red); }
   .dot.black { background: var(--black); }
+  .dot.new { background: #b0b0b0; }
 
   /* Inventory view */
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
@@ -116,6 +118,20 @@
   .toggle-btn.active-issue { border-color: var(--issue); background: #fdeceb; color: var(--issue); }
   .toggle-btn.active-receipt { border-color: var(--receipt); background: #eaf6ec; color: var(--receipt); }
   #addBtn { width: 100%; margin-top: 12px; padding: 14px; background: var(--gold); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; }
+
+  .suggestions {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    max-height: 260px; overflow-y: auto; z-index: 50;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  }
+  .suggestion-item {
+    padding: 16px 18px; font-size: 17px; font-weight: 600; color: var(--text);
+    border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:active, .suggestion-item.highlighted { background: #faf3e2; }
+  .suggestion-item .match-meta { font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 2px; }
 
   .ledger-cols { display: flex; gap: 8px; }
   .ledger-col { flex: 1; min-width: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
@@ -138,6 +154,7 @@
   .filter-chip.selected.yellow { background: #fdf3e0; color: var(--yellow); border-color: var(--yellow); }
   .filter-chip.selected.red { background: #fdeceb; color: var(--red); border-color: var(--red); }
   .filter-chip.selected.black { background: var(--black); color: white; border-color: var(--black); }
+  .filter-chip.selected.new { background: #ececec; color: #666; border-color: #bbb; }
   .cust-row { display: flex; align-items: center; justify-content: space-between; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 8px; }
   .cust-row .left { display: flex; align-items: center; }
   .cust-row .name { font-weight: 700; font-size: 15px; }
@@ -232,8 +249,10 @@
           <button class="toggle-btn" id="receiptToggle">Receipt</button>
         </div>
         <label>Party name</label>
-        <input type="text" id="partyName" placeholder="Name" list="partyList" autocomplete="off">
-        <datalist id="partyList"></datalist>
+        <div style="position:relative;">
+          <input type="text" id="partyName" placeholder="Type a customer name..." autocomplete="off">
+          <div id="partySuggestions" class="suggestions hidden"></div>
+        </div>
         <label>Weight (g)</label>
         <input type="number" id="weightInput" placeholder="0.00" step="0.01" inputmode="decimal">
         <button id="addBtn">Add Entry</button>
@@ -292,6 +311,8 @@ const DEPARTMENT_CODES = {
   "cz": "cz",
   "imported": "imported"
 };
+
+const SEED_CUSTOMERS = ["Banka","Kanak jew hyd","Senco Delhi","S s delhi","Shri jamna prasad gorakhpur","Senco kolkata","Swaratna jew gorakhpur","OP HYD","Joy","Sai Krupa ahmd","Cash Sale","Sejal mangalam chain govandi","Sharda ornament","Sachin bhai mrk","Saurabh del","Swagat chain","Kanak Ratna","Sidhi surat","Raghav banka","Saanvi jew","Janak panjab","V chain","Swarnica jew Patna","Sanskar abhushan","Navamitra coimutur","Mansi jew Rajkot","Shivraj prakashchandra raipur","Mamata pavai","Kanchan chain chn","Bhavani vapi","L Kashinath","Jay bhai v chain","Bhima bangalore","Navpad gold Ahmed","Gurjanwala Ambala","Hemant ji mrk","My gold","Factory","Ridhima del","Mallinath surat","Smith karigar","Lodha jew udaipur","Amantran chain","Harsh my gold","AIFA jew chappi","Babu bhai","Ankit gold amd","Babu Bhai hyd","Rachi mem","Kaneziya","Radha rani","Rohit chain kolkata","Oriva delhi","Raj laxmi","Sadhna mkt","V factory","BB Bandra","Lalit Bhai factory","Pp pune","Oreva Delhi","Tayba kurla","Kumkum jew hubli","Tayba jogeshwari","Mala","Chain and chain Mp","Swanik jewellers indore","Kanti lal amrashi","Kantilal amritlal amravati","Naksh mrk","Bhavika malad","Maniratna jew malad","Nexa AHMD","Kenaziya","Padmavati chain surat","V gold mrk","Manoj ouram","Surendra Saraf jew prayagraj","Shree bhairav shree jewel","Nakoda chain ahmd","Karbawala mrk","Jinita ref rashi","Anj lucknow","Rc bafna","Mayur chain","Kanak Chain","Bhairav corporation","Kalinga Glitz","Mangi lal agrawal","Sky","Kanchan hyd","Kanna jewellers tamilnadu","Anand gold kerla","Ratan amd","Rokde jew","Shri jewels agra","Lgl Malad factory","IGL","Rds jew varansi","Anand jew farh","Swarnalika jew jarkhand","Samridhi  Varanasi","Ferro mrk","Pawan jew kashamir","Chunilal Vijay sons","Gitanjali jew bijapur","Satva amd","A S calicut","Ambika malad","Kanishk jew jonpur","Navkar gold mrk","Sayam chain","Maharaja factory","Bapi nawabi","Khodiyar ahmd","Neeraj chain gorakhpur","Tips","Bacche lal","Kanna jew pathankot","Meera bhopal","Sai jew ulhasnagar","Arihant","Gupta hyd","Nakoda ahmd","Difference account","Rishabh market","Laxmi jew prayagraj","Abhushan bhopal","B m Bhusawal","Honey jew mathura","Sangam Govandi","Shyam kanpur","AS raipur","Nacks mrk","Rajesh craft","Kamal gold mrk","Pranshi Jew Ahmd","Nirmal bhai ladiwala","Aqua mrk","Navratan jew ranchi","Mm tel gali","Deva coimbatore","Satyam kmj","Pankaj bhai","Maya shree jew  chattisgarh","Swarnprabha bhopal","Blue jewel creation kerala","Rinku bhai Patna","Shree ji mark","Jain chain lucknow","Heera del","Kalash gold banglore","Aram chain","Sun mrk","Sonal raipur","WHP","Raj shree mark","Manahar jew mahim","Satyam ahmedabad","RR zaveri","New alankar jharkhand","Kbv creations kolkata","Rajesh ornament","Yesh jew nagpur","Swarna palace Bhandup","Vardhan jew MP","G kushal das rajkot","Ariha mrk","Paras ladiwala","V N Agra","Kadnekar jewellers Goa","Kanak bhai emerald","Krishna del","B m pali","Anup bhai pune","Royal jew kerela","Sia my gold","Jitender Gold","J s alankar patna","Srinagar ladiwala","Aditya jew meerut","Yash bhai  pune","Gotam jew mrk","Nakoda kandiwali","Swastik chain AMD","Sagar astekar Nasik","Jay jirawala","Fair chain baroda","Palak jewellers parla","T V zeweri amd","Palak Vikhroli","Ambe rohatak","Pooja jew nagpur","Ornate kota","Love gold","Navkar kandivali","Anand jew Ambala","Yash mathura gat mal","Singhal jew lucknow","B S jaipur","Ravi jew ulhasnagar","B K jew del","Chetan chain mrk","Alpesh moneco","Kalpesh heera panna","Dhanlaxmi jew m.p","Akash kanhaiya korba","Nitish Kumar lucknow","Sai kirpa ulhasnagar","Sahil Bhai hyd","Shree Shyam jew amravati","Arpan choco","Sahil bhai","Sonika jew sambhalpur","Ashok jew amravati","Kalekar jew kalhapur","Kokriyaj jew nashik","Rohit kolkata","Sheetal amd","Sk Chain kolkata","Arham Gold ahmd","Sri Surya che","Vaibhav Gold Goregaon","O p","G P agra","Anmol jew chembur","Jain jew","Gupta kanpur","Shiv chain Delhi","Vikash diva","Brista raipur","Moksh jew mrk","Kiran chain","Vishal cz","Banaras Swarna kala kendra","Dwarka jew sangamner","Mishka","ML CHAIN AHMD","Kundan (Kandivali)(Bhavesh vc)","Al huda mumbra","Vkj","Ck Saraf jodhpur","Ira house jewellery odisha","Manhar jew mahim","Vipul chain ahmd","Ankit jewellery ahmd","Shree ganesh tamilnadu","Ekka","Bv jew dankan road raf v chain","A a mala","Amilt lacknow","Swastik mrk","Vrindaara jew gandhinagar","Kanchani Jewellers kanpur","Sohan jewellery private limited","Nakoda mrk","Ronak 210 auram","K V mrk","Abhi bhai 33 no","Shree Shankar Jew Odisha","Nawlakha jewellers rajnandgaon","Khandelwal aakola","Venugopal gold palace","Kr jewellery goa","Krishna jewellers tardev","Lalit soni udaipur","Param jew banglore","Tounch","Bpb","Aurea palace ludhiana","C k Baroda","Jambu kumar lucknow","Aurea jewels ludhiana","Ira the house of jew orissa","Takwa","Dhanshree marketing","Koshda jew Mathura","Vinayak Borivali","Royal kerala","Sarkar ghatkopar","Vikram jew gulbarga","Jai prakash harshit kumar Saraf Lucknow","Laxmi bangles Nagpur","Plam ahmd","Rite bhai caravelle","Lal Babu Gorakhpur","Navin swarna sharita","Classic gold agra","Lanchani jew kanpur","Aispra","Star chain pune","Shantilal jew jharkhand","Sonali jew baroda","Mayur alankar nashik","Shayam jew siliguri","Padmavati chennai","Dhir sons del","DD Jewellers Uttarakhand","Nakshatra kerala","Prem Lucknow","Gokulam kerala","Shree Salasar Balaji Amritsar","Noor jew kanpur","Kanchan mala diva","Takva mumbra","Sri ganesh diamonds","Desire Ajmer","Lucky gold","Lahore jew dehradun","Manch chain market","Swarnalaxmi jodhpur","Hrdk","Bhairav mrk","Rprpj","Karan bhai CA","Namo jain kanpur","New Rajasthan jewels bhilai","Aram gold amd","Zee vizzu","Gahna kunj azamgarh","Dagina varanasi","Shree sagam jew bandra","Meera jew kanjurmark","Gopal babu gold palace","Manmohan jew priyagraj","National mkt","Krishna surat","Buppy karigar","Deep diamond indore","Vashali jew chaircop","Kanhiya lal Saraf Varanasi","Madhuvan jew vadodara","VBJ VINKETSH SIR","Viral gold valsad","Ratnesh gold ahmd","Ratnesh gold ahmedabad","Tarwey jew jarkhand","Vishwanath varansi","Stellar jew udaipur suraj","Keshav jew byavar","Rohit jew panjab","Mohit ji patna","Mahavir jew Karjat","Bhavna jew chembur","Shree Nath jew Jodhpur","National mrk","Jain chain surat","VTL","Mangalmurti jew jodhpur","Shivam jew jodhpur","Saraf jew kota","Diamond jew pune","Shri Dwarkani jodhpur","S K surat","Subhash And Sons Palakkad","Shayamsundar mrk","Mohan kheda","Jain jew lucknow","Milan mkt","Shadna mrk","Aadinath jewellery","Gautam mrk","Khazanchi surst","Swarna palace bandup","Ratnesh gold amd","AJANTA JEWELLERS Borivali","SMS varanasi","Nirmal bagmar jewellers","Navkar jew jalna","Sha gulabchand amarchand","Modern bareli","Bhawna jew chembur","Shree Kardhar jew Bhayandar","Kaanchana jewellers coimbatore","Dayalu kanpur","Swarnsarita mrk","Cuban chain","Diaura gems","18 plus","Gorpude jewel kolhapur","M h karbaval","Rose gold caunter","Nanu bhai surat","Bhairav gold malvani","Saheli raipur","Perish chain mrk","Srj mrk","Kriyaa's solitaire mrkt","S A G JEW","Abhishek jew colaba","Rama son's agra","Swarnika jew patna","Ankisha diamond indore","Sri lal amritsar","Mohini jew","Shree lal amritsar","Santosh jew malad","Ratan cast","Subhi agra","Badri Lucknow","SSD pimpri","Tyaba govandi","Sasvati enterprises","Bansidhar rajkot","Jainam jain","Sisodiya jwe Bhayandar","Maqbool gold kashmir","Amul choksi","Gorelal and sons nagpur","Shine shilpi","Sundram chain","Maa jew udisa","Jaina jewel","Pb society","Vandan veer surat","J S hyd","Ashapura jew malad","Durga jewellers junagadh","Sukhi chain","Sa jewellers amritsar","Chanchal jew gujrat","Dipesh bhai imp","Deepak jew ankleshwar","Innaya jew","Ramdev jew mrk","Shri Laxmi gold hubli","Seemar jew","Paras orena jewels pvt ltd","Shree ganesh surat","Pp chandigarh","Sadhana jew surat","Tiru balaji ranchi","Hiten soni","Meeth jew mysuru","Royal chain factory","B ashok banglore","D m Guwahati","WHP Dadar","Bhandari jew Sojat","Mayur jewellery","Ridhi sidhi jew panvel","Manish jew mrk","M g sons khar","L n j","At plus raipur","Dubai gold","Chat kasmir","Sagun jew darpan bhai","Kapil bhai virar","M L chain amd","Chandukaka pune","Mahi gold mira road","Sanjay jew udaipur","Veshali jew","Sagun jew","Tulsidas son's jew ulhasnagar","Royal silver","Unique chain","Aura jew auram","Charu chain","Ratna shilpi vasai","Bhorkar jew nagpur","Jewel attire del","Kunj bansal haryana","Bansi ahmd","Kimtee jew hyd","Shri Sai jew ankleshwar","W H P dadar","Jashi mrkt","Rajashree mrkt","Mahalaxmi jew kolhar","Ekta jew akola","Sri satyanarayan palakonda","Krizora","Sangita zevar","Shree kardhar jew","Kishan Jew Chandarpur","Paras gold amalmer","Ram Swarn mani jew lucknow","Manikchand manish kumar Saraf","Rudra jew varanasi","Kapil jewellers Ahmedabad","S D jew sikar","Shree dattatray jew","Anupchand Bhansali","M narendra kolahapur","CSC group","C s c","Rs bafna","Kalavati hyd","Paris","Rk jewel surat","Vyanktesh jew solapur","Kc silver hyd","Argh indore","Vasanlal nasiklal nagar","Manu bhai borivali","Damiyaj gajiyabad","B S N Tamil Nadu","Shree balaji","Jewal place kashmir","B sukan","Jewel place kashmir","B G platinum","KBS VARANASI","K r b h","Surya jewellers","Surya jew","Tanch","V N surat","Tavisha","Panch kesari banglore","Sri balaji jew","Shree ganesh banglore","Kaneyalal Saraf","Adi akshat mrk","Shanvi jew","Sree ranganadha jewellery aandra","Delux khar","S G B che","Swarnvilla mrk","Charbhuja jew mira road","Govandi jew","Mangal jew bhandup","D shiva bhat jew","Trimurti jew amravati","Arihat mrk","Manjali jew","Mayura matunga","Sri Sai Alankeshwar Jew","Sikhar and sons","Shubhi agra","Rohins jewellery punjab","Swarnshi mrk","Nitu masi","Kalyan","Avi bhai 33","Laxmi jewel prayagraj","Apeksha jew","Triveni int pinkesh bhai","Radheshyam jew Ambikapur","Ganesh odisa","NBC GOLD SRIKULAM","Saheli alankar bhilai","Hari Darshan jew surat","Gaytri Bhopal","Katva","Master chain mrk","Yash ornament Delhi","Prasad odisha","Apsara","Vidhi mem","Kamal jew parbhani","Mayara","SGB CHENNAI","Subham Motiwala mrk","Mansi jew chembur","Nitish Bhai tunku","Saubhagya jewel","Shubhagyam jew dhakoli","M M jew ghushawak","Vikram","RK JEWEL NAGPUR","Zevar","Kothari amd","Carvel","Vikash del","Kanisha","Piramin jewel","Piramin jew pawai","Rota jew nashik","Swarnmani Jewels Lucknow"];
 
 let state = { department: null, currentType: 'issue', entries: [], custFilter: 'all' };
 let pendingDept = null;
@@ -376,7 +397,6 @@ function enterApp() {
   $('deptHeading').textContent = 'My Gold — ' + capitalize(state.department);
   $('dateLabel').textContent = new Date().toLocaleDateString([], {weekday: 'long', day: 'numeric', month: 'long'});
   setType('issue');
-  populatePartyList();
   renderAll();
 }
 
@@ -419,7 +439,6 @@ $('addBtn').onclick = () => {
   });
   saveEntries();
   upsertCustomer(party_name, state.currentType);
-  populatePartyList();
   $('partyName').value = '';
   $('weightInput').value = '';
   renderAll();
@@ -488,12 +507,57 @@ function upsertCustomer(displayName, type) {
   saveCustomers(customers);
 }
 
-function populatePartyList() {
-  const customers = loadCustomers();
-  $('partyList').innerHTML = Object.values(customers)
-    .sort((a,b) => a.displayName.localeCompare(b.displayName))
-    .map(c => `<option value="${escapeHtml(c.displayName)}">`).join('');
+function getAllCustomerNames() {
+  return Object.values(loadCustomers()).map(c => c.displayName);
 }
+
+// One-time seed of the existing customer list, merged in without overwriting
+// any visit history a phone has already built up on its own.
+function seedCustomersIfNeeded() {
+  if (localStorage.getItem('mygold_seeded') === 'yes') return;
+  const customers = loadCustomers();
+  SEED_CUSTOMERS.forEach(name => {
+    const key = name.trim().toLowerCase();
+    if (!customers[key]) {
+      customers[key] = { displayName: name.trim(), lastDate: null, lastType: null };
+    }
+  });
+  saveCustomers(customers);
+  localStorage.setItem('mygold_seeded', 'yes');
+}
+
+let suggestionSelectedIndex = -1;
+function renderSuggestions(query) {
+  const box = $('partySuggestions');
+  const q = query.trim().toLowerCase();
+  if (!q) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+  const all = getAllCustomerNames();
+  const starts = [], contains = [];
+  all.forEach(name => {
+    const n = name.toLowerCase();
+    if (n.startsWith(q)) starts.push(name);
+    else if (n.includes(q)) contains.push(name);
+  });
+  const matches = [...starts.sort((a,b) => a.localeCompare(b)), ...contains.sort((a,b) => a.localeCompare(b))].slice(0, 8);
+
+  if (!matches.length) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+  suggestionSelectedIndex = -1;
+  box.innerHTML = matches.map(name => `<div class="suggestion-item" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>`).join('');
+  box.classList.remove('hidden');
+  box.querySelectorAll('.suggestion-item').forEach(item => {
+    item.onmousedown = (e) => {
+      e.preventDefault();
+      $('partyName').value = item.dataset.name;
+      box.classList.add('hidden');
+      $('weightInput').focus();
+    };
+  });
+}
+$('partyName').addEventListener('input', (e) => renderSuggestions(e.target.value));
+$('partyName').addEventListener('focus', (e) => { if (e.target.value.trim()) renderSuggestions(e.target.value); });
+$('partyName').addEventListener('blur', () => { setTimeout(() => $('partySuggestions').classList.add('hidden'), 150); });
 
 function daysSince(dateStr) {
   if (!dateStr) return null;
@@ -502,7 +566,7 @@ function daysSince(dateStr) {
   return Math.round((now - then) / 86400000);
 }
 function categoryFor(days) {
-  if (days === null) return 'black';
+  if (days === null) return 'new';
   if (days <= 7) return 'prime';
   if (days <= 14) return 'yellow';
   if (days <= 21) return 'red';
@@ -530,7 +594,6 @@ $('addCustBtn').onclick = () => {
     customers[key] = { displayName: name.trim(), lastDate: null, lastType: 'issue' };
     saveCustomers(customers);
   }
-  populatePartyList();
   renderCustomersView();
 };
 
@@ -546,10 +609,10 @@ $('historySearch').addEventListener('input', () => renderCustomersView());
 
 function renderFilterChips() {
   const list = getCustomerListWithMeta();
-  const counts = { all: list.length, prime: 0, yellow: 0, red: 0, black: 0 };
+  const counts = { all: list.length, prime: 0, yellow: 0, red: 0, black: 0, new: 0 };
   list.forEach(c => counts[c.category]++);
   const chips = [
-    ['all', 'All'], ['prime', 'Prime'], ['yellow', 'Yellow'], ['red', 'Red'], ['black', 'Black']
+    ['all', 'All'], ['prime', 'Prime'], ['yellow', 'Yellow'], ['red', 'Red'], ['black', 'Black'], ['new', 'New']
   ];
   $('filterChips').innerHTML = chips.map(([key, label]) => `
     <button class="filter-chip ${state.custFilter === key ? 'selected ' + key : ''}" data-filter="${key}">${label} (${counts[key]})</button>
@@ -618,6 +681,7 @@ function renderAll() {
   renderHome();
 }
 
+seedCustomersIfNeeded();
 checkGate();
 </script>
 </body>
